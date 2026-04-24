@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HardDiskSpace — See where your disk space goes</title>
+<meta name="description" content="HardDiskSpace is a fast, lightweight Windows utility for visualizing disk usage and finding what's eating your storage.">
+
+<style>
+  :root {
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --ink: #1b1b1b;
+    --ink-soft: #5c5c5c;
+    --ink-faint: #8a8a8a;
+    --line: #e5e5e5;
+    --accent: #0067c0;
+    --accent-hover: #005ba1;
+    --radius: 8px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a1a;
+      --surface: #242424;
+      --ink: #f3f3f3;
+      --ink-soft: #c7c7c7;
+      --ink-faint: #909090;
+      --line: #333;
+      --accent: #4cc2ff;
+      --accent-hover: #6dcfff;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: "Segoe UI Variable", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* Header */
+  header {
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    backdrop-filter: blur(12px);
+    background: color-mix(in srgb, var(--surface) 85%, transparent);
+    z-index: 10;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-weight: 600;
+    font-size: 1.0625rem;
+    letter-spacing: -0.01em;
+  }
+
+  .brand-mark {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 70%, #00b7c3) 100%);
+    display: grid;
+    place-items: center;
+    color: white;
+    font-size: 14px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 1.75rem;
+    font-size: 0.9375rem;
+  }
+
+  .nav-links a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .nav-links a:hover { color: var(--accent); }
+
+  /* Hero */
+  .hero {
+    padding: 5rem 0 4rem;
+    text-align: left;
+  }
+
+  .eyebrow {
+    display: inline-block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    padding: 0.375rem 0.875rem;
+    border-radius: 100px;
+    margin-bottom: 1.25rem;
+    letter-spacing: 0.01em;
+  }
+
+  h1 {
+    font-size: clamp(2.25rem, 5vw, 3.5rem);
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    max-width: 18ch;
+  }
+
+  .lede {
+    font-size: 1.1875rem;
+    color: var(--ink-soft);
+    max-width: 52ch;
+    margin-bottom: 2rem;
+    line-height: 1.55;
+  }
+
+  .cta-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--ink);
+    border-color: var(--line);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--ink-faint);
+  }
+
+  /* Sections */
+  section {
+    padding: 3.5rem 0;
+    border-top: 1px solid var(--line);
+  }
+
+  h2 {
+    font-size: 1.625rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin-bottom: 1.25rem;
+  }
+
+  .section-body {
+    color: var(--ink-soft);
+    font-size: 1.0625rem;
+    max-width: 60ch;
+  }
+
+  .section-body p + p { margin-top: 1rem; }
+
+  /* About */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  @media (max-width: 640px) {
+    .about-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  }
+
+  .feature-list {
+    list-style: none;
+    display: grid;
+    gap: 0.875rem;
+  }
+
+  .feature-list li {
+    padding-left: 1.75rem;
+    position: relative;
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+  }
+
+  .feature-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    border: 1.5px solid var(--accent);
+  }
+
+  /* Contact */
+  .contact-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .contact-card-text strong {
+    display: block;
+    font-size: 1.0625rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .contact-card-text span {
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+  }
+
+  .email-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9375rem;
+  }
+
+  .email-link:hover { text-decoration: underline; }
+
+  /* Footer */
+  footer {
+    padding: 2.5rem 0 3rem;
+    border-top: 1px solid var(--line);
+    color: var(--ink-faint);
+    font-size: 0.875rem;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  footer a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    margin-left: 1.25rem;
+  }
+
+  footer a:hover { color: var(--accent); }
+
+  /* Subtle entrance */
+  .hero > * {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: rise 0.5s ease forwards;
+  }
+  .hero .eyebrow { animation-delay: 0.05s; }
+  .hero h1 { animation-delay: 0.12s; }
+  .hero .lede { animation-delay: 0.2s; }
+  .hero .cta-row { animation-delay: 0.28s; }
+
+  @keyframes rise {
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container nav">
+    <div class="brand">
+      <div class="brand-mark">▣</div>
+      <span>HardDiskSpace</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#about">About</a>
+      <a href="#support">Support</a>
+      <a href="privacy.html">Privacy</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+
+  <section class="hero" style="border-top: none;">
+    <span class="eyebrow">Available on Microsoft Store</span>
+    <h1>See where your disk space actually goes.</h1>
+    <p class="lede">
+      HardDiskSpace is a fast, lightweight Windows utility that scans your drives and shows you, at a glance, exactly which folders and files are taking up space.
+    </p>
+    <div class="cta-row">
+      <a href="#" class="btn btn-primary">Get it from Microsoft Store</a>
+      <a href="#about" class="btn btn-secondary">Learn more</a>
+    </div>
+  </section>
+
+  <section id="about">
+    <h2>About HardDiskSpace</h2>
+    <div class="about-grid">
+      <div class="section-body">
+        <p>
+          HardDiskSpace was built around a simple idea: finding out what's filling your hard drive shouldn't take longer than freeing the space.
+        </p>
+        <p>
+          The app scans quickly, runs entirely on your local machine, and never sends your data anywhere. No accounts, no telemetry, no upsells.
+        </p>
+      </div>
+      <ul class="feature-list">
+        <li>Fast, multi-threaded disk scanning</li>
+        <li>Visual breakdown of folder sizes</li>
+        <li>Identify large files in seconds</li>
+        <li>100% local — your data stays on your device</li>
+        <li>No ads, no tracking, no accounts</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="support">
+    <h2>Support &amp; Contact</h2>
+    <p class="section-body" style="margin-bottom: 1.75rem;">
+      Have a question, found a bug, or want to suggest a feature? Get in touch — replies usually within a couple of days.
+    </p>
+    <div class="contact-card">
+      <div class="contact-card-text">
+        <strong>Email support</strong>
+        <span>For questions, bug reports, and feature requests</span>
+      </div>
+      <a class="email-link" href="mailto:hboypro@gmail.com">hboypro@gmail.com →</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="container">
+  <div>© 2026 HardDiskSpace</div>
+  <div>
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="mailto:hboypro@gmail.com">Contact</a>
+  </div>
+</footer>
+
+</body>
+</html>
